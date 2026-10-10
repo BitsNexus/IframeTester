@@ -1,0 +1,49 @@
+name: Deploy to GitHub Pages
+
+# Builds the site and publishes it to https://bitsnexus.github.io/IframeTester/
+# Set the repository variable PUBLIC_CHECK_API_URL (Settings → Secrets and variables → Actions → Variables)
+# to your Cloudflare Worker endpoint, e.g. https://iframe-url-tester-api.<you>.workers.dev/api/check-iframe
+# Without it the site still works, but in browser-only mode (most results “Could Not Determine”).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL || 'https://bitsnexus.github.io' }}
+      PUBLIC_BASE_PATH: ${{ vars.PUBLIC_BASE_PATH || '/IframeTester' }}
+      PUBLIC_CHECK_API_URL: ${{ vars.PUBLIC_CHECK_API_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Warn when the header-check API is not set
+        run: |
+          if [ -z "$PUBLIC_CHECK_API_URL" ]; then
+            echo "::warning::PUBLIC_CHECK_API_URL is not set — the site will run in browser-only mode. See README.md → Deploy."
+          fi
+      - name: Install, build, and upload the site
+        uses: withastro/action@v6
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,166 @@
+---
+import Icon from './Icon.astro';
+
+const steps = [
+  { id: 'validate', label: 'Validate URL' },
+  { id: 'server', label: 'Server header check' },
+  { id: 'iframe', label: 'Live iframe test' },
+  { id: 'analyse', label: 'Analyse signals' },
+];
+---
+
+<section id="results" aria-labelledby="results-heading" class="on-light relative mx-auto max-w-5xl scroll-mt-6 px-4 pb-16 [overflow-wrap:anywhere] sm:px-6" hidden data-results>
+  <h2 id="results-heading" class="sr-only">Results</h2>
+
+  <!-- Status -->
+  <div class="card overflow-hidden" data-status-card data-state="running">
+    <div class="grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:gap-8 sm:p-8">
+      <div class="dial relative mx-auto size-32 sm:size-36" aria-hidden="true">
+        <svg class="absolute inset-0 size-full -rotate-90" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54" fill="none" stroke="var(--color-gray-100)" stroke-width="8"></circle>
+          <circle class="dial-arc" cx="60" cy="60" r="54" fill="none" stroke-width="8" stroke-linecap="round" pathLength="100" stroke-dasharray="100"></circle>
+        </svg>
+        <div class="absolute inset-4 grid place-items-center rounded-full bg-linear-to-b from-white to-gray-50 shadow-md">
+          <span class="dial-icon" data-dial-icon="running"><Icon name="loader-circle" class="spin size-10 text-run" /></span>
+          <span class="dial-icon" data-dial-icon="embeddable"><Icon name="circle-check" class="size-12 text-pass" /></span>
+          <span class="dial-icon" data-dial-icon="blocked"><Icon name="circle-x" class="size-12 text-fail" /></span>
+          <span class="dial-icon" data-dial-icon="unknown"><Icon name="triangle-alert" class="size-12 text-warn" /></span>
+        </div>
+      </div>
+
+      <div class="min-w-0" aria-live="polite" aria-atomic="true">
+        <p class="text-xs font-bold tracking-wide text-gray-500 uppercase">Status</p>
+        <p class="mt-0.5 line-clamp-2 font-mono text-xs break-all text-gray-500" data-result-host></p>
+        <h3 class="mt-1 text-[28px] leading-tight font-semibold tracking-tight sm:text-4xl" data-headline>Testing…</h3>
+        <p class="mt-2 text-base text-gray-600" data-summary>Checking headers and loading the page in a hidden iframe.</p>
+        <div class="mt-3 flex flex-wrap items-center gap-2" data-badges hidden>
+          <span class="status" data-confidence></span>
+          <span class="status" data-status="pending" data-mode></span>
+        </div>
+        <p class="mt-2 text-xs text-gray-500" data-confidence-text></p>
+
+        <div class="mt-4" data-reasons-block hidden>
+          <p class="text-sm font-bold text-gray-900" data-reasons-title></p>
+          <ul class="mt-1.5 list-disc space-y-1 pl-5 text-sm text-gray-700 marker:text-gray-400" data-reasons></ul>
+        </div>
+        <ul class="mt-3 space-y-1.5" data-tips></ul>
+
+        <div class="mt-5 flex flex-wrap gap-2" data-actions hidden>
+          <button type="button" class="btn btn-primary" data-action="toggle-preview" aria-controls="preview" aria-expanded="false">
+            <Icon name="eye" class="size-4" />
+            <span data-preview-label>Show Preview</span>
+          </button>
+          <button type="button" class="btn btn-outline" data-action="copy-report">
+            <Icon name="copy" class="size-4" />
+            <span>Copy report</span>
+          </button>
+          <a class="btn btn-outline" target="_blank" rel="noopener noreferrer" data-open-link href="#">
+            <Icon name="external-link" class="size-4" />
+            Open page
+          </a>
+          <button type="button" class="btn btn-soft" data-action="retest">
+            <Icon name="rotate-ccw" class="size-4" />
+            Test again
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <ol class="grid border-t border-gray-100 bg-gray-25 sm:grid-cols-4" aria-label="Test progress">
+      {
+        steps.map((step, i) => (
+          <li class="flex items-center gap-2.5 px-6 py-3 text-sm font-medium text-gray-700 not-first:border-t not-first:border-gray-100 sm:not-first:border-t-0 sm:not-first:border-l" data-step={step.id}>
+            <span class="step-dot grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold" data-step-state="pending">
+              <span class="step-num">{i + 1}</span>
+              <Icon name="check" class="step-ok size-3.5" />
+              <Icon name="x" class="step-bad size-3.5" />
+              <Icon name="triangle-alert" class="step-warn size-3.5" />
+              <Icon name="loader-circle" class="step-run spin size-3.5" />
+            </span>
+            <span class="min-w-0">
+              <span class="block leading-tight">{step.label}</span>
+              <span class="block truncate text-xs text-gray-500" data-step-detail>Waiting</span>
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <!-- Iframe output (preview) -->
+  <div id="preview" class="card mt-6 scroll-mt-6 overflow-hidden" data-preview-card hidden>
+    <div class="flex flex-wrap items-end justify-between gap-2 px-5 pt-5 pb-4">
+      <div class="min-w-0">
+        <h3 class="flex items-center gap-2 text-lg font-bold text-gray-900"><Icon name="app-window" class="size-5 text-brand" /> Iframe output</h3>
+        <p class="mt-1 text-sm text-gray-500">The page rendered inside an <code class="font-mono text-xs">&lt;iframe&gt;</code> on this site — width 100%, height 500px.</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-3 border-y border-gray-200 bg-gray-50 px-4 py-2.5">
+      <span class="flex gap-1.5" aria-hidden="true">
+        <span class="size-3 rounded-full bg-[#ff5f57]"></span><span class="size-3 rounded-full bg-[#febc2e]"></span><span class="size-3 rounded-full bg-[#28c840]"></span>
+      </span>
+      <p class="min-w-0 flex-1 truncate rounded-full bg-white px-3 py-1 font-mono text-xs text-gray-600 ring-1 ring-gray-200" data-preview-url></p>
+      <span class="text-xs font-medium text-gray-500" data-preview-status>Loading…</span>
+      <button type="button" class="grid size-8 place-items-center rounded-full text-gray-600 hover:bg-gray-200" aria-label="Reload preview" title="Reload" data-action="reload-preview">
+        <Icon name="refresh-cw" class="size-4" />
+      </button>
+      <button type="button" class="grid size-8 place-items-center rounded-full text-gray-600 hover:bg-gray-200" aria-label="Hide preview" title="Hide Preview" data-action="toggle-preview">
+        <Icon name="x" class="size-4" />
+      </button>
+    </div>
+    <div class="relative h-[500px] w-full bg-[repeating-conic-gradient(var(--color-gray-100)_0_25%,white_0_50%)] bg-size-[24px_24px]" data-preview-host></div>
+    <div class="grid gap-4 border-t border-gray-200 p-5 md:grid-cols-[1fr_1.2fr]">
+      <p class="text-sm text-gray-600">
+        <Icon name="info" class="mr-1 inline size-4 align-[-3px] text-gray-400" />
+        This is exactly what another website would show. If you see “refused to connect”, a grey frame or a blank page, the site blocks embedding. The preview is sandboxed, so the page can’t navigate away from this tester.
+      </p>
+      <div class="min-w-0">
+        <div class="flex items-center justify-between gap-2">
+          <p class="flex items-center gap-1.5 text-sm font-bold text-gray-900"><Icon name="code-xml" class="size-4 text-brand" /> Embed code</p>
+          <button type="button" class="btn btn-soft px-3 py-1.5 text-xs" data-action="copy-embed"><Icon name="copy" class="size-3.5" /> <span>Copy</span></button>
+        </div>
+        <pre class="mt-2 max-h-40 overflow-auto rounded-xl bg-ink px-4 py-3 font-mono text-xs leading-relaxed break-all whitespace-pre-wrap text-lime"><code data-embed-code></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+    <!-- Evidence -->
+    <div class="card min-w-0 p-6">
+      <h3 class="flex items-center gap-2 text-lg font-bold text-gray-900"><Icon name="list-checks" class="size-5 text-brand" /> Evidence</h3>
+      <p class="mt-1 text-sm text-gray-500">Every signal the verdict is based on.</p>
+      <ul class="mt-4 space-y-3" data-findings></ul>
+    </div>
+
+    <!-- Diagnostics -->
+    <div class="card min-w-0 p-6">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h3 class="flex items-center gap-2 text-lg font-bold text-gray-900"><Icon name="file-search" class="size-5 text-brand" /> Diagnostics</h3>
+          <p class="mt-1 text-sm text-gray-500">Technical details of this test.</p>
+        </div>
+        <button type="button" class="btn btn-soft px-3 py-2 text-xs" data-action="copy-report">
+          <Icon name="copy" class="size-4" /> <span>Copy</span>
+        </button>
+      </div>
+      <table class="kv mt-3">
+        <caption class="sr-only">Diagnostics</caption>
+        <tbody data-diagnostics></tbody>
+      </table>
+      <details class="group/raw mt-4 rounded-xl bg-gray-50 ring-1 ring-gray-200" data-raw-block hidden>
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-gray-700 [&::-webkit-details-marker]:hidden">
+          Response headers
+          <Icon name="chevron-down" class="size-4 transition-transform group-open/raw:rotate-180" />
+        </summary>
+        <pre class="max-h-72 overflow-auto border-t border-gray-200 px-4 py-3 font-mono text-xs leading-relaxed break-all whitespace-pre-wrap text-gray-800" data-raw-headers></pre>
+      </details>
+    </div>
+  </div>
+
+  <!-- Icons cloned by the script for evidence rows. -->
+  <template data-icon="pass"><Icon name="circle-check" class="size-5 shrink-0 text-pass" /></template>
+  <template data-icon="fail"><Icon name="circle-x" class="size-5 shrink-0 text-fail" /></template>
+  <template data-icon="warn"><Icon name="triangle-alert" class="size-5 shrink-0 text-warn" /></template>
+  <template data-icon="info"><Icon name="info" class="size-5 shrink-0 text-gray-400" /></template>
+  <template data-icon="tip"><Icon name="zap" class="mt-0.5 size-4 shrink-0 text-brand" /></template>
+</section>

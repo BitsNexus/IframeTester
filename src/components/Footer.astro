@@ -1,0 +1,43 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { SITE } from '../lib/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="bg-night text-white">
+  <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
+    <div class="max-w-sm">
+      <Logo id="footer-logo" />
+      <p class="mt-4 text-sm leading-relaxed text-white/70">
+        Find out whether a web page can be shown inside an iframe — with the real X-Frame-Options and CSP rules browsers enforce, and an honest confidence level.
+      </p>
+      <p class="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/90 ring-1 ring-white/15">
+        <Icon name="shield-check" class="size-4 text-lime" />
+        No sign-up · No tracking · Free
+      </p>
+    </div>
+    <nav aria-label="Tool">
+      <h2 class="text-sm font-bold text-white">IFrame Tester</h2>
+      <ul class="mt-3 space-y-2 text-sm text-white/70">
+        <li><a class="hover:text-lime" href="#test">Test a URL</a></li>
+        <li><a class="hover:text-lime" href="#how-it-works">How it works</a></li>
+        <li><a class="hover:text-lime" href="#headers">Header cheat sheet</a></li>
+        <li><a class="hover:text-lime" href="#allow-embedding">Allow embedding on your site</a></li>
+        <li><a class="hover:text-lime" href="#privacy">Privacy</a></li>
+        <li><a class="hover:text-lime" href="#faq">FAQ</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="BitsNexus">
+      <h2 class="text-sm font-bold text-white">{SITE.owner}</h2>
+      <ul class="mt-3 space-y-2 text-sm text-white/70">
+        <li><a class="hover:text-lime" href={SITE.ownerUrl}>Home</a></li>
+        <li><a class="hover:text-lime" href={SITE.appsUrl}>More free tools</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="border-t border-white/10 px-4 py-5 text-center text-xs text-white/60">
+    &copy; {year} {SITE.name} · A <a class="font-bold text-lime hover:underline" href={SITE.ownerUrl}>{SITE.owner}</a> project.
+  </div>
+</footer>

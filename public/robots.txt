@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://bitsnexus.github.io/IframeTester/sitemap-index.xml

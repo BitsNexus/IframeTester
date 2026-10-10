@@ -1,0 +1,29 @@
+---
+/**
+ * Inline Lucide icon (ISC licence), rendered at build time — no icon font, no CDN.
+ * Add a name to the glob below before using it.
+ */
+interface Props {
+  name: string;
+  class?: string;
+  label?: string;
+}
+
+const icons = import.meta.glob<string>(
+  '/node_modules/lucide-static/icons/{frame,globe,link,clipboard-paste,circle-check,circle-x,triangle-alert,info,loader-circle,check,x,copy,external-link,refresh-cw,eye,eye-off,code-xml,server,shield-check,shield-x,lock,history,trash-2,chevron-down,settings-2,gauge,scan-eye,list-checks,arrow-right,monitor,circle-help,zap,file-search,app-window,clock,sliders-horizontal,circle-dashed,rotate-ccw,square-code,gamepad-2,puzzle,handshake,layout-grid}.svg',
+  { query: '?raw', import: 'default', eager: true },
+);
+
+const { name, class: className = 'size-5', label } = Astro.props;
+const raw = icons[`/node_modules/lucide-static/icons/${name}.svg`];
+if (!raw) throw new Error(`Icon "${name}" is not in the Icon.astro glob.`);
+
+const a11y = label ? `role="img" aria-label="${label.replace(/"/g, '&quot;')}"` : 'aria-hidden="true" focusable="false"';
+// Only the outer <svg> loses its class/size — inner <rect>s need their width/height.
+const svg = raw
+  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/<svg[^>]*>/, (tag) => tag.replace(/\s(class|width|height)="[^"]*"/g, '').replace('<svg', `<svg class="${className}" ${a11y}`))
+  .trim();
+---
+
+<Fragment set:html={svg} />

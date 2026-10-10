@@ -1,0 +1,9 @@
+# Cloudflare Worker for the header-check API (free plan: 100,000 requests/day).
+# Deploy with:  npx wrangler deploy
+name = "iframe-url-tester-api"
+main = "worker/index.ts"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Browsers may only call the API from these origins. Add your custom domain if you use one.
+ALLOWED_ORIGINS = "https://bitsnexus.github.io,http://localhost:4380,http://localhost:4381"

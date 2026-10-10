@@ -1,0 +1,49 @@
+---
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+import { SITE } from '../lib/site';
+import { absoluteUrl, url } from '../lib/url';
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  /** Extra JSON-LD objects for this page. */
+  jsonLd?: object[];
+}
+
+const { title = SITE.title, description = SITE.description, noindex = false, jsonLd = [] } = Astro.props;
+const canonical = absoluteUrl(Astro.url.pathname);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <!-- Tested pages see only this site's origin, never the full URL. Some embeds (e.g. YouTube) require a referrer. -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="theme-color" content="#03170c" />
+    <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
+    <link rel="sitemap" href={url('/sitemap-index.xml')} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+
+    <Font cssVariable="--font-dm-sans" preload />
+
+    {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+  </head>
+  <body>
+    <a href="#main" class="sr-only z-50 rounded-full bg-lime px-4 py-2 font-bold text-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3">Skip to content</a>
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,82 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import TesterForm from '../components/TesterForm.astro';
+import Results from '../components/Results.astro';
+import InfoSections from '../components/InfoSections.astro';
+import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
+import { SITE } from '../lib/site';
+import { FAQ } from '../data/faq';
+import { absoluteUrl } from '../lib/url';
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: SITE.name,
+    url: absoluteUrl('/'),
+    description: SITE.description,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Any (runs in the browser)',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    publisher: { '@type': 'Organization', name: SITE.owner, url: SITE.ownerUrl },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQ.map((item) => ({ '@type': 'Question', name: item.q, acceptedAnswer: { '@type': 'Answer', text: item.a } })),
+  },
+];
+
+const stats = [
+  { icon: 'shield-check', value: 'Real headers', label: 'X-Frame-Options + CSP' },
+  { icon: 'app-window', value: 'Live iframe', label: 'tested in your browser' },
+  { icon: 'gauge', value: 'Confidence', label: 'no guesswork' },
+];
+---
+
+<Base jsonLd={jsonLd}>
+  <Header />
+  <main id="main">
+    <div class="sky relative overflow-hidden pt-[72px] text-white">
+      <div class="mx-auto max-w-4xl px-4 pt-8 text-center sm:px-6 sm:pt-12">
+        <h1 class="text-[40px] leading-[1.1] font-semibold tracking-[-0.4px] sm:text-5xl sm:leading-[60px]">
+          <span class="text-lime-gradient">IFrame URL Tester</span>
+        </h1>
+        <p class="mt-1 text-[32px] leading-[1.15] font-semibold tracking-[-0.4px] text-white sm:text-5xl sm:leading-[60px]">Can this page be embedded?</p>
+        <p class="mx-auto mt-5 max-w-xl text-base text-white/80">
+          Enter a website URL to find out if it can load inside an <code class="font-mono text-[15px] text-lime">&lt;iframe&gt;</code>. We read its real X-Frame-Options and
+          Content-Security-Policy headers, load it in a live iframe, and tell you how sure we are.
+        </p>
+      </div>
+
+      <TesterForm />
+
+      <div class="mx-auto flex justify-center px-4 pt-10 pb-14 sm:px-6">
+        <ul class="glass grid w-full max-w-2xl grid-cols-1 gap-4 px-6 py-4 sm:grid-cols-3 sm:gap-6 sm:px-8">
+          {
+            stats.map((stat) => (
+              <li class="flex items-center gap-3">
+                <Icon name={stat.icon} class="size-6 shrink-0 text-white" />
+                <span class="leading-tight">
+                  <span class="block text-sm font-bold text-white">{stat.value}</span>
+                  <span class="block text-sm text-white/70">{stat.label}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <Results />
+    </div>
+
+    <InfoSections />
+  </main>
+  <Footer />
+
+  <script>
+    import '../scripts/app';
+  </script>
+</Base>

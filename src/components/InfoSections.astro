@@ -1,0 +1,249 @@
+---
+import Icon from './Icon.astro';
+import { FAQ } from '../data/faq';
+
+const steps = [
+  {
+    icon: 'shield-check',
+    title: 'Validate the URL',
+    text: 'Only http:// and https:// pages are tested. javascript:, data: and file: links are refused, and https:// is added when you leave it out.',
+  },
+  {
+    icon: 'server',
+    title: 'Read the real headers',
+    text: 'Our server requests the page exactly like a cross-site iframe (Sec-Fetch-Dest: iframe), follows every redirect and reads X-Frame-Options and Content-Security-Policy from the final page.',
+  },
+  {
+    icon: 'scan-eye',
+    title: 'Apply the browser’s rules',
+    text: 'Headers are judged with the HTML Standard and CSP Level 3 rules: frame-ancestors overrides X-Frame-Options, ALLOW-FROM is ignored, report-only never blocks, wildcards and ports are matched precisely.',
+  },
+  {
+    icon: 'app-window',
+    title: 'Load a live iframe',
+    text: 'A hidden, sandboxed iframe loads the page in your browser with a timeout. Sub-frames appearing inside it prove a real page rendered; mixed content (http inside https) is caught up front.',
+  },
+];
+
+const visibility = [
+  { signal: 'iframe load event', seen: 'Yes — but it also fires for blocked pages', use: 'Load time only, never proof', state: 'warn' },
+  { signal: 'What the frame shows (page or error)', seen: 'No — cross-origin frames are sealed', use: 'You can see it in the preview', state: 'fail' },
+  { signal: 'X-Frame-Options & CSP headers', seen: 'No — only through the server check', use: 'The main verdict (high confidence)', state: 'pass' },
+  { signal: 'Sub-frames inside the page', seen: 'Yes — the count only', use: 'Proves a real page rendered', state: 'pass' },
+  { signal: 'Mixed content (http in https)', seen: 'Yes — decided before loading', use: 'Always blocked', state: 'pass' },
+  { signal: 'Network failures', seen: 'Partly (opaque no-cors request)', use: 'Explains failures', state: 'warn' },
+];
+
+const xfoRows = [
+  { value: 'DENY', meaning: 'No site may frame the page — not even its own.', result: 'Blocked', state: 'fail' },
+  { value: 'SAMEORIGIN', meaning: 'Only pages with the same scheme, host and port.', result: 'Same site only', state: 'warn' },
+  { value: 'ALLOW-FROM https://a.com', meaning: 'Obsolete. Current browsers ignore it entirely.', result: 'No effect', state: 'info' },
+  { value: 'DENY, SAMEORIGIN', meaning: 'Conflicting values are treated as a block.', result: 'Blocked', state: 'fail' },
+  { value: '(not set)', meaning: 'No legacy restriction.', result: 'Allowed', state: 'pass' },
+];
+
+const cspRows = [
+  { value: "frame-ancestors 'none'", meaning: 'No site may frame the page.', result: 'Blocked', state: 'fail' },
+  { value: "frame-ancestors 'self'", meaning: 'Only the page’s own origin.', result: 'Same site only', state: 'warn' },
+  { value: 'frame-ancestors https://a.com', meaning: 'Only https://a.com (default port).', result: 'Listed sites', state: 'warn' },
+  { value: 'frame-ancestors *.example.com', meaning: 'Any subdomain — but not example.com itself.', result: 'Listed sites', state: 'warn' },
+  { value: 'frame-ancestors https:', meaning: 'Any site served over HTTPS.', result: 'Allowed', state: 'pass' },
+  { value: 'frame-ancestors *', meaning: 'Any http(s) site.', result: 'Allowed', state: 'pass' },
+];
+
+const recipe = "frame-ancestors 'self' https://partner.com";
+const snippets = [
+  { name: 'Nginx', code: `# Inside server { } or location { }\nproxy_hide_header X-Frame-Options;\nadd_header Content-Security-Policy "${recipe}" always;` },
+  { name: 'Apache (.htaccess)', code: `Header always unset X-Frame-Options\nHeader always set Content-Security-Policy "${recipe}"` },
+  { name: 'Express (helmet)', code: `app.use(helmet({\n  xFrameOptions: false,\n  contentSecurityPolicy: {\n    directives: { frameAncestors: ["'self'", 'https://partner.com'] },\n  },\n}));` },
+  { name: 'Netlify / Cloudflare Pages (_headers)', code: `/*\n  Content-Security-Policy: ${recipe}` },
+  { name: 'Vercel (vercel.json)', code: `{\n  "headers": [{\n    "source": "/(.*)",\n    "headers": [{ "key": "Content-Security-Policy", "value": "${recipe}" }]\n  }]\n}` },
+  { name: 'PHP', code: `header_remove('X-Frame-Options');\nheader("Content-Security-Policy: ${recipe}");` },
+];
+---
+
+<div class="on-light bg-gray-25 text-gray-900">
+  <!-- How it works -->
+  <section id="how-it-works" aria-labelledby="how-heading" class="mx-auto max-w-7xl scroll-mt-4 px-4 py-20 sm:px-6">
+    <p class="eyebrow">How it works</p>
+    <h2 id="how-heading" class="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">Real checks, not guesses</h2>
+    <p class="mt-3 max-w-2xl text-gray-600">
+      Every test combines the page’s actual security headers with a live iframe in your browser — and tells you how sure it is.
+    </p>
+    <ol class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        steps.map((step, i) => (
+          <li class="card p-6">
+            <span class="grid size-11 place-items-center rounded-full bg-brand text-white shadow-md">
+              <Icon name={step.icon} class="size-5" />
+            </span>
+            <h3 class="mt-4 text-lg font-bold">
+              <span class="text-gray-400">{i + 1}.</span> {step.title}
+            </h3>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600">{step.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="mt-12 grid gap-8 lg:grid-cols-[1fr_1.4fr] lg:items-start">
+      <div>
+        <h3 class="text-2xl font-semibold tracking-tight">What a web page can — and can’t — see</h3>
+        <p class="mt-3 text-gray-600">
+          Browsers deliberately hide what happens inside a frame from another site. If they didn’t, any page could secretly load your bank or email in a frame and
+          learn things about you. So a blocked frame and a working frame look almost identical from the outside: both fire <code class="font-mono text-sm">onload</code>, both
+          refuse access to their content.
+        </p>
+        <p class="mt-3 text-gray-600">
+          That’s why this tool never treats <code class="font-mono text-sm">onload</code> as proof, reads the headers on a server, and says
+          <strong>Could Not Determine</strong> when the evidence isn’t there.
+        </p>
+      </div>
+      <div class="card overflow-x-auto p-2">
+        <table class="w-full min-w-[520px] text-left text-sm">
+          <thead>
+            <tr class="text-xs tracking-wide text-gray-500 uppercase">
+              <th class="px-4 py-3 font-bold">Signal</th>
+              <th class="px-4 py-3 font-bold">Visible to this page?</th>
+              <th class="px-4 py-3 font-bold">Used for</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              visibility.map((row) => (
+                <tr class="border-t border-gray-100">
+                  <th scope="row" class="px-4 py-3 font-bold text-gray-900">
+                    {row.signal}
+                  </th>
+                  <td class="px-4 py-3 text-gray-600">{row.seen}</td>
+                  <td class="px-4 py-3">
+                    <span class="status" data-status={row.state}>
+                      {row.use}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Header cheat sheet -->
+  <section id="headers" aria-labelledby="headers-heading" class="scroll-mt-4 border-y border-gray-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+      <p class="eyebrow">Cheat sheet</p>
+      <h2 id="headers-heading" class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">The two headers that decide</h2>
+      <p class="mt-3 max-w-2xl text-gray-600">
+        When a page sends both, <strong>CSP frame-ancestors wins</strong> and X-Frame-Options is ignored. Both only work as HTTP headers — never in a
+        <code class="font-mono text-sm">&lt;meta&gt;</code> tag.
+      </p>
+      <div class="mt-10 grid gap-6 lg:grid-cols-2">
+        {
+          [
+            { title: 'X-Frame-Options', rows: xfoRows },
+            { title: 'Content-Security-Policy: frame-ancestors', rows: cspRows },
+          ].map((table) => (
+            <div class="card overflow-x-auto p-2">
+              <h3 class="px-4 pt-3 pb-1 font-mono text-sm font-bold text-gray-900">{table.title}</h3>
+              <table class="w-full min-w-[460px] text-left text-sm">
+                <tbody>
+                  {table.rows.map((row) => (
+                    <tr class="border-t border-gray-100 first:border-t-0">
+                      <th scope="row" class="px-4 py-3 align-top font-mono text-xs font-bold text-gray-900">
+                        {row.value}
+                      </th>
+                      <td class="px-4 py-3 align-top text-gray-600">{row.meaning}</td>
+                      <td class="px-4 py-3 text-right align-top">
+                        <span class="status" data-status={row.state === 'info' ? 'pending' : row.state}>
+                          {row.result}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Allow embedding -->
+  <section id="allow-embedding" aria-labelledby="allow-heading" class="mx-auto max-w-7xl scroll-mt-4 px-4 py-20 sm:px-6">
+    <p class="eyebrow">For site owners</p>
+    <h2 id="allow-heading" class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Allow iframe embedding on your own site</h2>
+    <p class="mt-3 max-w-3xl text-gray-600">
+      Remove <code class="font-mono text-sm">X-Frame-Options</code>, then list the sites you trust in <code class="font-mono text-sm">frame-ancestors</code>. Replace
+      <code class="font-mono text-sm">https://partner.com</code> with your partners, or use <code class="font-mono text-sm">*</code> to let anyone embed the page. Check that
+      frameworks, security plugins or your CDN don’t add X-Frame-Options back — then test the page here again.
+    </p>
+    <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {
+        snippets.map((s) => (
+          <div class="card flex min-w-0 flex-col p-5">
+            <h3 class="flex items-center gap-2 font-bold">
+              <Icon name="square-code" class="size-4 text-brand" /> {s.name}
+            </h3>
+            <pre class="code-block mt-3 flex-1"><code>{s.code}</code></pre>
+          </div>
+        ))
+      }
+    </div>
+    <p class="mt-6 flex max-w-3xl items-start gap-2 text-sm text-gray-600">
+      <Icon name="info" class="mt-0.5 size-4 shrink-0 text-gray-400" />
+      <span>
+        Hosts that can’t set headers, like GitHub Pages, send no framing headers at all — so their pages can be embedded anywhere. Serve over HTTPS: https sites can’t frame
+        http pages.
+      </span>
+    </p>
+  </section>
+
+  <!-- Privacy -->
+  <section id="privacy" aria-labelledby="privacy-heading" class="scroll-mt-4 border-y border-gray-200 bg-white">
+    <div class="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 md:grid-cols-[auto_1fr] md:items-start">
+      <span class="grid size-14 place-items-center rounded-full bg-pass-bg text-pass ring-1 ring-pass-line"><Icon name="lock" class="size-6" /></span>
+      <div>
+        <h2 id="privacy-heading" class="text-2xl font-semibold tracking-tight">Privacy</h2>
+        <p class="mt-3 max-w-3xl text-gray-700">
+          <strong>URLs are checked in your browser.</strong> If server mode is enabled, the URL is fetched by our server to inspect headers.
+        </p>
+        <ul class="mt-4 grid max-w-4xl gap-3 text-sm text-gray-600 sm:grid-cols-2">
+          <li class="flex gap-2">
+            <Icon name="check" class="mt-0.5 size-4 shrink-0 text-pass" /> The live iframe loads the page from your own browser, like any embed would. The page sees only this site’s address as the referrer.
+          </li>
+          <li class="flex gap-2">
+            <Icon name="check" class="mt-0.5 size-4 shrink-0 text-pass" /> The server fetches the page once, without cookies, reads the framing headers and the start of the HTML, and returns them. It doesn’t store or log URLs.
+          </li>
+          <li class="flex gap-2">
+            <Icon name="check" class="mt-0.5 size-4 shrink-0 text-pass" /> Turn off “Check headers on server” to keep every request in your browser (results will be less certain).
+          </li>
+          <li class="flex gap-2">
+            <Icon name="check" class="mt-0.5 size-4 shrink-0 text-pass" /> Recent tests are saved only in this browser’s local storage. Clear them any time.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" aria-labelledby="faq-heading" class="mx-auto max-w-4xl scroll-mt-4 px-4 py-20 sm:px-6">
+    <p class="eyebrow">FAQ</p>
+    <h2 id="faq-heading" class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Frequently asked questions</h2>
+    <div class="mt-8 space-y-3">
+      {
+        FAQ.map((item) => (
+          <details class="card group/faq">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-base font-bold text-gray-900 [&::-webkit-details-marker]:hidden">
+              {item.q}
+              <Icon name="chevron-down" class="size-5 shrink-0 text-gray-400 transition-transform group-open/faq:rotate-180" />
+            </summary>
+            <p class="border-t border-gray-100 px-5 py-4 leading-relaxed text-gray-600">{item.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </section>
+</div>

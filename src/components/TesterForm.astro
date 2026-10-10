@@ -1,0 +1,139 @@
+---
+import Icon from './Icon.astro';
+
+const examples = [
+  { label: 'example.com', url: 'example.com' },
+  { label: 'YouTube embed', url: 'https://www.youtube.com/embed/aqz-KE-bpKQ' },
+  { label: 'google.com', url: 'google.com' },
+  { label: 'facebook.com', url: 'facebook.com' },
+  { label: 'developer.mozilla.org', url: 'developer.mozilla.org' },
+];
+---
+
+<section id="test" aria-labelledby="test-heading" class="relative mx-auto mt-10 max-w-7xl px-4 sm:px-6">
+  <h2 id="test-heading" class="sr-only">Test a URL</h2>
+
+  <!-- Decorative floating cards, desktop only (like the LimeWire hero). -->
+  <div aria-hidden="true" class="pointer-events-none absolute top-6 left-6 hidden w-56 -rotate-3 rounded-xl bg-white p-4 shadow-(--shadow-float) xl:block">
+    <p class="flex items-center gap-2 text-sm font-bold text-pass"><Icon name="circle-check" class="size-5" /> Embeddable</p>
+    <p class="mt-2 font-mono text-[11px] text-gray-500">frame-ancestors *</p>
+    <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100"><div class="h-full w-full rounded-full bg-linear-to-r from-leaf to-lime"></div></div>
+  </div>
+  <div aria-hidden="true" class="pointer-events-none absolute top-24 right-6 hidden w-56 rotate-2 rounded-xl bg-white p-4 shadow-(--shadow-float) xl:block">
+    <p class="flex items-center gap-2 text-sm font-bold text-fail"><Icon name="circle-x" class="size-5" /> Embedding blocked</p>
+    <p class="mt-2 font-mono text-[11px] text-gray-500">X-Frame-Options: DENY</p>
+    <p class="mt-3 flex items-center gap-1.5 text-xs font-bold text-gray-700"><Icon name="shield-check" class="size-4 text-pass" /> High confidence</p>
+  </div>
+
+  <form class="relative mx-auto max-w-2xl" action="" method="get" novalidate data-form>
+    <label for="url-input" class="mb-2 block text-center text-sm font-bold text-white/85">Website URL</label>
+    <div
+      class="url-bar group/bar flex items-center gap-2 rounded-full bg-linear-to-b from-white to-gray-50 p-1.5 pl-4 shadow-lg ring-4 ring-lime/30 transition-shadow focus-within:ring-lime sm:pl-5"
+    >
+      <Icon name="globe" class="size-5 shrink-0 text-brand" />
+      <input
+        id="url-input"
+        name="url"
+        type="text"
+        inputmode="url"
+        autocomplete="url"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="go"
+        placeholder="https://example.com"
+        aria-describedby="url-help url-error"
+        class="min-w-0 flex-1 bg-transparent py-3 text-base font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none"
+        data-url-input
+      />
+      <button
+        type="button"
+        class="grid size-10 shrink-0 place-items-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+        title="Paste from clipboard"
+        aria-label="Paste URL from clipboard"
+        data-action="paste"
+        hidden
+      >
+        <Icon name="clipboard-paste" class="size-5" />
+      </button>
+      <button type="submit" class="btn btn-primary btn-lg shrink-0 px-5 sm:px-7" data-submit>
+        <span data-submit-label>Test URL</span>
+        <Icon name="arrow-right" class="hidden size-5 sm:block" />
+      </button>
+    </div>
+
+    <p id="url-error" class="mx-auto mt-3 flex max-w-xl items-start gap-2 rounded-xl bg-fail-bg px-4 py-2.5 text-sm font-medium text-fail ring-1 ring-fail-line" role="alert" hidden>
+      <Icon name="circle-x" class="mt-0.5 size-4 shrink-0" />
+      <span data-error-text></span>
+    </p>
+    <p id="url-help" class="mt-3 text-center text-sm text-white/70">
+      Paste any page — <span class="font-mono text-white/85">example.com</span> works too, we add <span class="font-mono text-white/85">https://</span> for you.
+    </p>
+
+    <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm">
+      <span class="font-bold text-white/70">Try:</span>
+      {
+        examples.map((ex) => (
+          <button
+            type="button"
+            class="rounded-full bg-white/10 px-3 py-1 font-medium text-white ring-1 ring-white/15 transition-colors hover:bg-white/20"
+            data-example={ex.url}
+          >
+            {ex.label}
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="mt-5 flex flex-wrap items-start justify-center gap-x-6 gap-y-3 text-sm text-white">
+      <label class="inline-flex cursor-pointer items-center gap-2.5 font-bold" data-server-option>
+        <input type="checkbox" class="peer sr-only" checked data-server-toggle />
+        <span
+          class="relative h-6 w-11 shrink-0 rounded-full bg-white/25 transition-colors peer-checked:bg-leaf peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-lime peer-focus-visible:outline-solid peer-disabled:opacity-50 after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"
+          aria-hidden="true"></span>
+        <span>Check headers on server</span>
+        <span class="status" data-status="pending" data-server-badge hidden></span>
+      </label>
+
+      <details class="group/adv text-white" data-advanced>
+        <summary class="inline-flex cursor-pointer list-none items-center gap-1.5 font-bold text-white/85 hover:text-white [&::-webkit-details-marker]:hidden">
+          <Icon name="sliders-horizontal" class="size-4" />
+          Advanced
+          <Icon name="chevron-down" class="size-4 transition-transform group-open/adv:rotate-180" />
+        </summary>
+        <div class="glass mt-3 grid w-[min(100vw-2rem,26rem)] gap-4 p-4 text-left">
+          <label class="grid gap-1.5">
+            <span class="text-sm font-bold">Your website (optional)</span>
+            <input
+              type="text"
+              inputmode="url"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="https://your-site.com"
+              class="rounded-lg bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400"
+              aria-describedby="embedder-help"
+              data-embedder-input
+            />
+            <span id="embedder-help" class="text-xs text-white/70">Judge the headers for your own domain — e.g. when a site allows only listed partners.</span>
+          </label>
+          <label class="grid gap-1.5">
+            <span class="text-sm font-bold">Live iframe timeout</span>
+            <select class="rounded-lg bg-white px-3 py-2 text-sm text-gray-900" data-timeout>
+              <option value="5000">5 seconds</option>
+              <option value="10000" selected>10 seconds</option>
+              <option value="20000">20 seconds</option>
+            </select>
+          </label>
+        </div>
+      </details>
+    </div>
+    <p class="mx-auto mt-3 max-w-lg text-center text-xs text-white/60" data-server-note></p>
+
+    <div class="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm" data-history hidden>
+      <span class="inline-flex items-center gap-1.5 font-bold text-white/70"><Icon name="history" class="size-4" /> Recent:</span>
+      <div class="contents" data-history-list></div>
+      <button type="button" class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-white/60 hover:text-white" data-action="clear-history">
+        <Icon name="trash-2" class="size-3.5" /> Clear
+      </button>
+    </div>
+  </form>
+</section>

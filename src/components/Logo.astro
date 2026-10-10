@@ -1,0 +1,27 @@
+---
+import { url } from '../lib/url';
+import { SITE } from '../lib/site';
+
+interface Props {
+  /** Unique gradient id when the logo appears more than once on a page. */
+  id?: string;
+  class?: string;
+}
+const { id = 'logo', class: className = '' } = Astro.props;
+---
+
+<a href={url('/')} class:list={['inline-flex items-center gap-2 rounded-lg text-white', className]} aria-label={`${SITE.name} home`}>
+  <svg class="size-8 shrink-0" viewBox="0 0 48 48" aria-hidden="true">
+    <defs>
+      <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1a9e5d"></stop>
+        <stop offset="1" stop-color="#d2f54d"></stop>
+      </linearGradient>
+    </defs>
+    <circle cx="24" cy="24" r="19" fill="none" stroke={`url(#${id})`} stroke-width="4"></circle>
+    <rect x="13.5" y="15.5" width="21" height="17" rx="3" fill="none" stroke="#d2f54d" stroke-width="2.6"></rect>
+    <path d="M13.5 20.5h21" stroke="#d2f54d" stroke-width="2.6"></path>
+    <path d="m20.5 26.2 2.4 2.4 4.6-4.6" fill="none" stroke="#d2f54d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+  <span class="text-lg leading-none font-bold tracking-tight">IFrame<span class="text-lime">Tester</span></span>
+</a>

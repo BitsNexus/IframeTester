@@ -1,0 +1,38 @@
+---
+import Logo from './Logo.astro';
+
+const links = [
+  { href: '#how-it-works', label: 'How it works' },
+  { href: '#headers', label: 'Headers' },
+  { href: '#allow-embedding', label: 'Allow embedding' },
+  { href: '#faq', label: 'FAQ' },
+];
+---
+
+<header class="absolute inset-x-0 top-0 z-20">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+    <div class="flex items-center gap-8">
+      <Logo id="header-logo" />
+      <nav aria-label="Primary" class="hidden md:block">
+        <ul class="flex items-center gap-6 text-sm font-bold text-white">
+          {
+            links.map((link) => (
+              <li>
+                <a href={link.href} class="rounded opacity-90 transition-opacity hover:opacity-100 hover:underline hover:underline-offset-4">
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="hidden items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white ring-1 ring-white/15 sm:inline-flex">
+        <span class="size-1.5 rounded-full bg-lime" aria-hidden="true"></span>
+        Real header checks
+      </span>
+      <a href="#test" class="btn btn-primary">Test a URL</a>
+    </div>
+  </div>
+</header>

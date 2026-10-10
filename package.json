@@ -1,0 +1,37 @@
+{
+  "name": "iframe-url-tester",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "lint": "astro check && tsc --noEmit -p worker/tsconfig.json",
+    "test": "node --test src/lib/*.test.ts src/server/*.test.ts",
+    "api": "node src/server/serve.ts",
+    "worker:build": "esbuild worker/index.ts --bundle --format=esm --platform=neutral --outfile=dist-worker/index.js",
+    "astro": "astro"
+  },
+  "allowScripts": {
+    "esbuild": true
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.5",
+    "lucide-static": "^1.49.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@cloudflare/workers-types": "^5.20260930.2",
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^6.0.3"
+  }
+}
